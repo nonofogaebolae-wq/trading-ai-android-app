@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Trading AI</string>
+    <string name="connect_deriv">Connect Deriv</string>
+    <string name="buy_signal">BUY</string>
+    <string name="sell_signal">SELL</string>
+    <string name="hold_signal">HOLD</string>
+    <string name="send_test">Send Test</string>
+</resources>

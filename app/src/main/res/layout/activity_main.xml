@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B1120"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Trading AI"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="18dp" />
+
+    <TextView
+        android:id="@+id/connectionText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Status: disconnected"
+        android:textColor="#93C5FD"
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/tokenInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Deriv API token"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#94A3B8"
+        android:backgroundTint="#334155"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/appIdInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Deriv app id (optional)"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#94A3B8"
+        android:backgroundTint="#334155"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/symbolInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Symbol (example: R_100)"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#94A3B8"
+        android:backgroundTint="#334155"
+        android:layout_marginBottom="10dp" />
+
+    <EditText
+        android:id="@+id/amountInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Amount"
+        android:inputType="numberDecimal"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#94A3B8"
+        android:backgroundTint="#334155"
+        android:layout_marginBottom="20dp" />
+
+    <Button
+        android:id="@+id/connectButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="@string/connect_deriv"
+        android:layout_marginBottom="12dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="18dp">
+
+        <Button
+            android:id="@+id/buyButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/buy_signal"
+            android:backgroundTint="#22C55E"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/sellButton"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="@string/sell_signal"
+            android:backgroundTint="#EF4444"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/holdButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="@string/hold_signal"
+        android:backgroundTint="#475569"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/testButton"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="@string/send_test"
+        android:backgroundTint="#3B82F6"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/logText"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="Log: waiting"
+        android:textColor="#E2E8F0"
+        android:textSize="14sp"
+        android:paddingTop="20dp" />
+
+</LinearLayout>
