@@ -18,7 +18,16 @@ class DerivApiClient(
     private var webSocket: WebSocket? = null
     private var isAuthorized = false
 
+    private var pendingProposalRequest: String? = null
+    private var lastProposalId: Long? = null
+    private var lastAskPrice: Double? = null
+
     fun connect() {
+        if (webSocket != null) {
+            onEvent("Deriv socket already connected")
+            return
+        }
+
         val request = Request.Builder()
             .url("wss://ws.deriv.com/websockets/v3")
             .build()
@@ -30,10 +39,51 @@ class DerivApiClient(
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 onEvent("Deriv response: $text")
-                val json = JSONObject(text)
-                if (json.has("authorize")) {
-                    isAuthorized = json.getJSONObject("authorize").optBoolean("authorized", false)
-                    onEvent("Authorization status: ${isAuthorized}")
+
+                try {
+                    val json = JSONObject(text)
+
+                    if (json.has("authorize")) {
+                        val auth = json.getJSONObject("authorize")
+                        isAuthorized = auth.optBoolean("authorized", false)
+                        onEvent("Authorization status: $isAuthorized")
+                    }
+
+                    if (json.has("proposal")) {
+                        val proposal = json.getJSONObject("proposal")
+                        val proposalId = proposal.optLong("id", -1L)
+                        val askPrice = proposal.optDouble("ask_price", -1.0)
+
+                        if (proposalId > 0 && askPrice > 0) {
+                            lastProposalId = proposalId
+                            lastAskPrice = askPrice
+                            onEvent("Proposal received: id=$proposalId, ask_price=$askPrice")
+                            placeBuyOrder(proposalId, askPrice)
+                        } else {
+                            onEvent("Proposal response not ready for trade")
+                        }
+                    }
+
+                    if (json.has("buy")) {
+                        val buyResponse = json.getJSONObject("buy")
+                        val buyId = buyResponse.optLong("contract_id", -1L)
+                        val status = buyResponse.optString("status", "unknown")
+                        val remainingCost = buyResponse.optDouble("buy_price", -1.0)
+
+                        if (buyId > 0) {
+                            onEvent("Trade executed successfully: contract_id=$buyId, status=$status, buy_price=$remainingCost")
+                        } else {
+                            onEvent("Buy response received but contract_id missing")
+                        }
+                    }
+
+                    if (json.has("error")) {
+                        val error = json.getJSONObject("error")
+                        onEvent("Deriv error: ${error.optString("message", "unknown error")}")
+                    }
+
+                } catch (e: Exception) {
+                    onEvent("Parse error: ${e.message}")
                 }
             }
 
@@ -57,8 +107,7 @@ class DerivApiClient(
             return
         }
 
-        val payload = JSONObject()
-            .put("authorize", token)
+        val payload = JSONObject().put("authorize", token)
         webSocket?.send(payload.toString())
         onEvent("Sent authorize request")
     }
@@ -69,38 +118,55 @@ class DerivApiClient(
             return
         }
 
-        val direction = when (action) {
-            "BUY" -> "CALL"
-            "SELL" -> "PUT"
-            else -> "HOLD"
+        if (!isAuthorized) {
+            onEvent("Authorization is required before trade execution")
+            return
         }
 
-        if (direction == "HOLD") {
-            onEvent("Hold signal sent to app only. No trade order generated.")
+        if (action == "HOLD") {
+            onEvent("Hold signal received. No Deriv order sent.")
+            return
+        }
+
+        val contractType = if (action == "BUY") "CALL" else if (action == "SELL") "PUT" else "CALL"
+
+        val proposal = JSONObject().apply {
+            put("proposal", 1)
+            put("amount", amount)
+            put("basis", "stake")
+            put("contract_type", contractType)
+            put("currency", "USD")
+            put("duration", 5)
+            put("duration_unit", "m")
+            put("symbol", symbol)
+        }
+
+        pendingProposalRequest = action
+        webSocket?.send(proposal.toString())
+        onEvent("Requesting Deriv proposal for $symbol as $contractType")
+    }
+
+    private fun placeBuyOrder(contractId: Long, askPrice: Double) {
+        if (!isAuthorized) {
+            onEvent("Cannot buy because not authorized")
             return
         }
 
         val payload = JSONObject().apply {
-            put("buy", 1)
-            put("price", 1)
-            put("parameters", JSONObject().apply {
-                put("amount", amount)
-                put("basis", "stake")
-                put("contract_type", direction)
-                put("currency", "USD")
-                put("duration", 1)
-                put("duration_unit", "m")
-                put("symbol", symbol)
-            })
+            put("buy", contractId)
+            put("price", askPrice)
         }
 
         webSocket?.send(payload.toString())
-        onEvent("Sent Deriv trade payload: $payload")
+        onEvent("Executing trade: buy=$contractId, price=$askPrice")
     }
 
     fun close() {
         webSocket?.close(1000, "Closing session")
         webSocket = null
         isAuthorized = false
+        lastProposalId = null
+        lastAskPrice = null
+        pendingProposalRequest = null
     }
 }
